@@ -102,6 +102,18 @@ def generate_full_history(type_arrival_rates, type_departure_probs, max_t):
 
     return all_elems
 
+def toy_e_weights_type():
+    mat = 0.1*torch.ones(5,5)
+    mat[0,1] = 3.0
+    mat[1,0] = 3.0
+    mat[0,0] = -100.0
+    mat[0,2:5] = -100.0
+    mat[2:5,0] = -100.0
+    return mat
+
+toy_arrival_rates = torch.Tensor([0.2,1.0,1.0,1.0,1.0])
+toy_departure_probs = torch.Tensor([0.9,0.05,0.1,0.1,0.1])
+
 def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
     lhs_matched_inds = []
     rhs_matched_inds = []
