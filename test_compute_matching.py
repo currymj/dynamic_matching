@@ -33,7 +33,7 @@ def test_compute_ambiguous():
     currpool, e_weights_type, one_correct_matching = ambiguous_matching()
 
     resulting_match, e_weights = compute_matching(currpool, torch.zeros(5), e_weights_type)
-    assert torch.allclose(resulting_match, one_correct_matching)
+    assert torch.allclose(resulting_match, one_correct_matching, atol=1e-6)
 
 
 def test_jitter_matrix():
