@@ -59,6 +59,14 @@ class CurrentElems:
         self.lhs = lhs
         self.rhs = rhs
 
+def ind_counts_to_longs(arrival_counts):
+    # optimize later
+    results = []
+    for i in range(arrival_counts.shape[0]):
+        for j in range(arrival_counts[i]):
+            results.append(i)
+    return torch.LongTensor(results)
+
 def both_sides_history(type_arrival_rates, type_departure_probs, max_t):
     return History(generate_full_history(type_arrival_rates, type_departure_probs, max_t),
                    generate_full_history(type_arrival_rates, type_departure_probs, max_t))
@@ -93,3 +101,16 @@ def generate_full_history(type_arrival_rates, type_departure_probs, max_t):
         assert(v[2] >= 0)
 
     return all_elems
+
+def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
+    lhs_matched_inds = []
+    rhs_matched_inds = []
+    total_true_loss = 0.0
+    for i in range(match_edges.shape[0]):
+        max_val, max_ind = torch.max(match_edges[i], 0)
+        if max_val > match_thresh:
+            lhs_matched_inds.append(i)
+            rhs_matched_inds.append(max_ind.item())
+            total_true_loss += e_weights[i, max_ind].item()
+
+    return lhs_matched_inds, rhs_matched_inds, total_true_loss
