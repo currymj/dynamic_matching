@@ -57,6 +57,14 @@ def type_weight_matrix(lhs_current_elems, rhs_current_elems, weights_by_type):
             weights_result[i, j] = weights_by_type[lhs_current_elems[i]] + weights_by_type[rhs_current_elems[j]]
     return weights_result
 
+def jitter_matrix(l_n, r_n):
+    # optimize later
+    result = torch.zeros(l_n, r_n)
+    for i, val_i in enumerate(torch.linspace(0.0,1.0,l_n)):
+        for j, val_j in enumerate(torch.linspace(0.0,1.0,r_n)):
+            result[i, j] = val_i + val_j
+    return result
+
 def compute_matching(current_pool_list, curr_type_weights, e_weights_by_type, gamma=0.000001):
     # current_pool_list should have lhs and rhs, get them both as tensors
     lhs_current_elems = torch.tensor([x[0] for x in current_pool_list.lhs])
