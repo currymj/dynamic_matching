@@ -2,6 +2,7 @@ import torch
 
 from bipartite_match import ind_counts_to_longs, get_matched_indices
 from collections import defaultdict
+from pytest import approx
 
 def test_ind_counts_to_longs():
     arrival_counts = torch.tensor([2,3,2])
@@ -99,19 +100,63 @@ def test_arrivals_only():
     assert newpool.lhs == target_pool.lhs
     assert newpool.rhs == target_pool.rhs
 
-#def test_step_simulation():
-    #hist = History([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5], [torch.tensor(2), 2, 5]],
-                   #[[torch.tensor(1), 0, 1], [torch.tensor(1), 1, 5]])
-    #desired_dict_lhs = defaultdict(list)
-    #desired_dict_lhs[0] = [[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]]
-    #desired_dict_lhs[2] = [[torch.tensor(2), 2, 5]]
-#
-    #desired_dict_rhs = defaultdict(list)
-    #desired_dict_rhs[0] = [[torch.tensor(1), 0, 1]]
-    #desired_dict_rhs[1] = [[torch.tensor(1), 1, 5]]
-#
-    #currpool = CurrentElems([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]],[[torch.tensor(1), 0, 1]])
-    #match_edges = torch.tensor([[0.0],
-                                #[1.0]])
-    #e_weights = toy_e_weights_type()
-    ##result_pool, total_loss = step_simulation(currpool, match_edges, e_weights, )
+def test_step_simulation_noarrival():
+    desired_dict_lhs = defaultdict(list)
+    desired_dict_rhs = defaultdict(list)
+
+
+    currpool = CurrentElems([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]], [[torch.tensor(1), 0, 1]])
+    match_edges = torch.tensor([[0.0],
+                                [1.0]])
+    e_weights_type = toy_e_weights_type()
+    e_weights = weight_matrix(currpool.lhs, currpool.rhs, e_weights_type)
+
+    result_pool, total_loss = step_simulation(currpool, match_edges, e_weights, desired_dict_lhs, desired_dict_rhs, 1)
+
+    assert approx(total_loss, 0.1)
+
+    assert result_pool.lhs == [[torch.tensor(1), 0, 2]]
+    assert result_pool.rhs == []
+
+def test_step_simulation_nomatch():
+    desired_dict_lhs = defaultdict(list)
+    desired_dict_rhs = defaultdict(list)
+
+
+    currpool = CurrentElems([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]], [[torch.tensor(1), 0, 1]])
+    match_edges = torch.tensor([[0.0],
+                                [0.0]])
+    e_weights_type = toy_e_weights_type()
+    e_weights = weight_matrix(currpool.lhs, currpool.rhs, e_weights_type)
+
+    result_pool, total_loss = step_simulation(currpool, match_edges, e_weights, desired_dict_lhs, desired_dict_rhs, 1)
+
+    assert approx(total_loss, 0.0)
+
+    assert result_pool.lhs == [[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]]
+    assert result_pool.rhs == []
+
+
+def test_step_simulation():
+    hist = History([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5], [torch.tensor(2), 2, 5]],
+                   [[torch.tensor(1), 0, 1], [torch.tensor(1), 1, 5]])
+    desired_dict_lhs = defaultdict(list)
+    desired_dict_lhs[0] = [[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]]
+    desired_dict_lhs[2] = [[torch.tensor(2), 2, 5]]
+
+    desired_dict_rhs = defaultdict(list)
+    desired_dict_rhs[0] = [[torch.tensor(1), 0, 1]]
+    desired_dict_rhs[1] = [[torch.tensor(1), 1, 5]]
+
+    currpool = CurrentElems([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]],[[torch.tensor(1), 0, 1]])
+    match_edges = torch.tensor([[0.0],
+                                [1.0]])
+    e_weights_type = toy_e_weights_type()
+    e_weights = weight_matrix(currpool.lhs, currpool.rhs, e_weights_type)
+
+    result_pool, total_loss = step_simulation(currpool, match_edges, e_weights, desired_dict_lhs, desired_dict_rhs, 1)
+
+    assert approx(total_loss, 0.1)
+
+    assert result_pool.lhs == [[torch.tensor(1), 0, 2]]
+    assert result_pool.rhs == [[torch.tensor(1), 1, 5]]
