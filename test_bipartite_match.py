@@ -160,3 +160,29 @@ def test_step_simulation():
 
     assert result_pool.lhs == [[torch.tensor(1), 0, 2]]
     assert result_pool.rhs == [[torch.tensor(1), 1, 5]]
+
+from compute_matching import compute_matching
+def test_e2e():
+    hist = History([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5], [torch.tensor(2), 2, 5]],
+                   [[torch.tensor(1), 0, 1], [torch.tensor(1), 1, 5]])
+    desired_dict_lhs = defaultdict(list)
+    desired_dict_lhs[0] = [[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]]
+    desired_dict_lhs[2] = [[torch.tensor(2), 2, 5]]
+
+    desired_dict_rhs = defaultdict(list)
+    desired_dict_rhs[0] = [[torch.tensor(1), 0, 1]]
+    desired_dict_rhs[1] = [[torch.tensor(1), 1, 5]]
+
+    currpool = CurrentElems([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]],[[torch.tensor(1), 0, 1]])
+
+    e_weights_type = toy_e_weights_type()
+    potentials = torch.tensor([0.0,0.0,0.0,0.0,0.0])
+    match_edges, e_weights_full = compute_matching(currpool, potentials, e_weights_type)
+
+
+    result_pool, total_loss = step_simulation(currpool, match_edges, e_weights_full, desired_dict_lhs, desired_dict_rhs, 1)
+
+    assert approx(total_loss, 0.1)
+
+    assert result_pool.lhs == [[torch.tensor(2), 0, 5]]
+    assert result_pool.rhs == [[torch.tensor(1), 1, 5]]
