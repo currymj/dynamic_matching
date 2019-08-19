@@ -84,6 +84,7 @@ toy_arrival_rates = torch.Tensor([0.2,1.0,1.0,1.0,1.0])
 toy_departure_probs = torch.Tensor([0.9,0.05,0.1,0.1,0.1])
 
 def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
+    assert match_edges.shape == e_weights.shape
     lhs_matched_inds = []
     rhs_matched_inds = []
     total_true_loss = 0.0

@@ -41,8 +41,10 @@ def make_matching_matrix(l_n, r_n):
         b[u] = 1
 
     return A, b
-def weight_matrix(lhs_current_elems, rhs_current_elems, weights_by_type):
+def weight_matrix(lhs_current_list, rhs_current_list, weights_by_type):
     # optimize later
+    lhs_current_elems = torch.tensor([x[0] for x in lhs_current_list])
+    rhs_current_elems = torch.tensor([x[0] for x in rhs_current_list])
     weights_result = torch.zeros(lhs_current_elems.shape[0], rhs_current_elems.shape[0])
     for i in range(lhs_current_elems.shape[0]):
         for j in range(rhs_current_elems.shape[0]):
@@ -75,7 +77,7 @@ def compute_matching(current_pool_list, curr_type_weights, e_weights_by_type, ga
     A = torch.from_numpy(A).float()
     b = torch.from_numpy(b).float()
     # should take lhs and rhs
-    e_weights = weight_matrix(lhs_current_elems, rhs_current_elems, e_weights_by_type).view(l_n, r_n)
+    e_weights = weight_matrix(current_pool_list.lhs, current_pool_list.rhs, e_weights_by_type).view(l_n, r_n)
     jitter_e_weights = e_weights + 1e-4 * jitter_matrix(l_n, r_n)
     # e_weights = torch.rand(n,n)
     model_params_quad = make_gurobi_model(A.detach().numpy(), b.detach().numpy(), None, None,
