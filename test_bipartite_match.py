@@ -43,3 +43,19 @@ def test_screwy_match():
     assert set(rhs_inds) == set([0])
 
 
+def test_match_value():
+    currpool, e_weights, correct_matching = unambiguous_matching()
+    lhs_inds, rhs_inds, true_loss = get_matched_indices(correct_matching, e_weights)
+    assert true_loss == 3.0
+
+def test_empty_match_value():
+    currpool, e_weights, correct_matching = unambiguous_matching()
+    lhs_inds, rhs_inds, true_loss = get_matched_indices(torch.zeros_like(correct_matching), e_weights)
+    assert true_loss == 0.0
+
+def test_screwy_match_value():
+    currpool, e_weights, correct_matching = unambiguous_matching()
+    correct_matching[0,0] = 0.1
+    correct_matching[1,0] = 0.9
+    lhs_inds, rhs_inds, true_loss = get_matched_indices(correct_matching, e_weights)
+    assert true_loss == 3.0
