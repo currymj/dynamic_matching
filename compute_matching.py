@@ -60,8 +60,8 @@ def type_weight_matrix(lhs_current_elems, rhs_current_elems, weights_by_type):
 def jitter_matrix(l_n, r_n):
     # optimize later
     result = torch.zeros(l_n, r_n)
-    for i, val_i in enumerate(torch.linspace(0.0,1.0,l_n)):
-        for j, val_j in enumerate(torch.linspace(0.0,1.0,r_n)):
+    for i, val_i in enumerate(torch.linspace(1.0,0.0,l_n)):
+        for j, val_j in enumerate(torch.linspace(1.0,0.0,r_n)):
             result[i, j] = val_i + val_j
     return result
 

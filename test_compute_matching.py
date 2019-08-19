@@ -38,5 +38,5 @@ def test_compute_ambiguous():
 
 def test_jitter_matrix():
     jit_mat = jitter_matrix(2,4)
-    assert torch.allclose(jit_mat, torch.tensor([[0.0,0.333,0.666,1.0],
-                                                 [1.0,1.333,1.666,2.0]]), atol=1e-3)
+    assert torch.allclose(jit_mat, torch.tensor([[2.0,1.666,1.333,1.0],
+                                                 [1.0,0.666,0.333,0.0]]), atol=1e-3)
