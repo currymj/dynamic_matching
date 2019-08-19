@@ -97,6 +97,9 @@ def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
     return lhs_matched_inds, rhs_matched_inds, total_true_loss
 
 
+def arrivals_only(current_elems, l_t_to_arrivals, r_t_to_arrivals, curr_t):
+    return CurrentElems(current_elems.lhs + l_t_to_arrivals[curr_t], current_elems.rhs + r_t_to_arrivals[curr_t])
+
 def step_simulation(current_elems, match_edges, e_weights, l_t_to_arrivals, r_t_to_arrivals, curr_t, match_thresh=0.8):
 
     lhs_matched_inds, rhs_matched_inds, total_true_loss = get_matched_indices(match_edges, e_weights)

@@ -62,7 +62,7 @@ def test_screwy_match_value():
     assert true_loss == 3.0
 
 
-from bipartite_match import History, history_to_arrival_dict
+from bipartite_match import History, history_to_arrival_dict, arrivals_only, step_simulation
 
 def test_history_to_arrival_dict():
     hist = History([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5], [torch.tensor(2), 2, 5]],
@@ -78,4 +78,20 @@ def test_history_to_arrival_dict():
     assert history_to_arrival_dict(hist.lhs) == desired_dict_lhs
     assert history_to_arrival_dict(hist.rhs) == desired_dict_rhs
 
+def test_arrivals_only():
+    hist = History([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5], [torch.tensor(2), 2, 5]],
+                   [[torch.tensor(1), 0, 1], [torch.tensor(1), 1, 5]])
+    desired_dict_lhs = defaultdict(list)
+    desired_dict_lhs[0] = [[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]]
+    desired_dict_lhs[2] = [[torch.tensor(2), 2, 5]]
 
+    desired_dict_rhs = defaultdict(list)
+    desired_dict_rhs[0] = [[torch.tensor(1), 0, 1]]
+    desired_dict_rhs[1] = [[torch.tensor(1), 1, 5]]
+
+    currpool = CurrentElems([],[])
+    newpool = arrivals_only(currpool, desired_dict_lhs, desired_dict_rhs, 0)
+
+    target_pool = CurrentElems([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]],[[torch.tensor(1), 0, 1]])
+    assert newpool.lhs == target_pool.lhs
+    assert newpool.rhs == target_pool.rhs
