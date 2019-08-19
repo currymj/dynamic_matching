@@ -1,6 +1,7 @@
 import torch
 
 from bipartite_match import ind_counts_to_longs, get_matched_indices
+from collections import defaultdict
 
 def test_ind_counts_to_longs():
     arrival_counts = torch.tensor([2,3,2])
@@ -59,3 +60,22 @@ def test_screwy_match_value():
     correct_matching[1,0] = 0.9
     lhs_inds, rhs_inds, true_loss = get_matched_indices(correct_matching, e_weights)
     assert true_loss == 3.0
+
+
+from bipartite_match import History, history_to_arrival_dict
+
+def test_history_to_arrival_dict():
+    hist = History([[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5], [torch.tensor(2), 2, 5]],
+                 [[torch.tensor(1), 0, 1], [torch.tensor(1), 1, 5]])
+    desired_dict_lhs = defaultdict(list)
+    desired_dict_lhs[0] = [[torch.tensor(1), 0, 2], [torch.tensor(2), 0, 5]]
+    desired_dict_lhs[2] = [[torch.tensor(2), 2, 5]]
+
+    desired_dict_rhs = defaultdict(list)
+    desired_dict_rhs[0] = [[torch.tensor(1), 0, 1]]
+    desired_dict_rhs[1] = [[torch.tensor(1), 1, 5]]
+
+    assert history_to_arrival_dict(hist.lhs) == desired_dict_lhs
+    assert history_to_arrival_dict(hist.rhs) == desired_dict_rhs
+
+

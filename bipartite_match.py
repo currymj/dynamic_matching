@@ -65,6 +65,12 @@ def generate_full_history(type_arrival_rates, type_departure_probs, max_t):
 
     return all_elems
 
+def history_to_arrival_dict(full_history):
+    result = defaultdict(list)
+    for v in full_history:
+        result[v[1]].append(v)
+    return result
+
 def toy_e_weights_type():
     mat = 0.1*torch.ones(5,5)
     mat[0,1] = 3.0
@@ -90,3 +96,32 @@ def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
 
     return lhs_matched_inds, rhs_matched_inds, total_true_loss
 
+
+def step_simulation(current_elems, match_edges, e_weights, l_t_to_arrivals, r_t_to_arrivals, curr_t, match_thresh=0.8):
+
+    lhs_matched_inds, rhs_matched_inds, total_true_loss = get_matched_indices(match_edges, e_weights)
+    # get locations of maxima
+    # remove from current_elems if the maxima are <= match_threshold.
+
+    pool_after_match = CurrentElems([], [])
+
+    for i in range(len(current_elems.lhs)):
+        if i not in lhs_matched_inds:
+            pool_after_match.lhs.append(current_elems.lhs[i])
+
+    for j in range(len(current_elems.rhs)):
+        if j not in rhs_matched_inds:
+            pool_after_match.rhs.append(current_elems.rhs[j])
+
+    remaining_elements = CurrentElems([], [])
+    for v in pool_after_match.lhs:
+        if v[2] > curr_t:
+            remaining_elements.lhs.append(v)
+    for v in pool_after_match.rhs:
+        if v[2] > curr_t:
+            remaining_elements.rhs.append(v)
+
+    after_arrivals_lhs = remaining_elements.lhs + l_t_to_arrivals[curr_t]
+    after_arrivals_rhs = remaining_elements.rhs + r_t_to_arrivals[curr_t]
+
+    return CurrentElems(after_arrivals_lhs, after_arrivals_rhs), total_true_loss
