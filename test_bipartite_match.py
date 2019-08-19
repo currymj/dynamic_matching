@@ -27,6 +27,20 @@ def test_get_matched_indices_1():
     assert set(lhs_inds) == set([0])
     assert set(rhs_inds) == set([0])
 
+def test_empty_match():
+    currpool, e_weights, correct_matching = unambiguous_matching()
+    lhs_inds, rhs_inds, _ = get_matched_indices(torch.zeros_like(correct_matching), e_weights)
+    assert set(lhs_inds) == set([])
+    assert set(rhs_inds) == set([])
+
+def test_screwy_match():
+    currpool, e_weights, correct_matching = unambiguous_matching()
+    correct_matching[0,0] = 0.9
+    correct_matching[1,0] = 0.1
+    lhs_inds, rhs_inds, _ = get_matched_indices(correct_matching, e_weights)
+    assert set(lhs_inds) == set([0])
+    assert set(rhs_inds) == set([0])
+
 
 
 
