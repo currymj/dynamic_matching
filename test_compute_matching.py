@@ -33,13 +33,8 @@ def test_compute_ambiguous():
     currpool, e_weights_type, one_correct_matching = ambiguous_matching()
 
     resulting_match, e_weights = compute_matching(currpool, torch.zeros(5), e_weights_type)
-    assert torch.allclose(resulting_match, one_correct_matching, atol=1e-6)
+    assert torch.allclose(resulting_match, one_correct_matching, atol=1e-4)
 
-
-def test_jitter_matrix():
-    jit_mat = jitter_matrix(2,4)
-    assert torch.allclose(jit_mat, torch.tensor([[2.0,1.666,1.333,1.0],
-                                                 [1.0,0.666,0.333,0.0]]), atol=1e-3)
 
 def test_weight_matrix():
     currpool = CurrentElems([[torch.tensor(2), 0, 5], [torch.tensor(1), 0, 5], [torch.tensor(2), 0, 5]],
