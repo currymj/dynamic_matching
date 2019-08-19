@@ -126,3 +126,45 @@ def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
             total_true_loss += e_weights[i, max_ind].item()
 
     return lhs_matched_inds, rhs_matched_inds, total_true_loss
+
+def weight_matrix(lhs_current_elems, rhs_current_elems, weights_by_type):
+    # optimize later
+    weights_result = torch.zeros(lhs_current_elems.shape[0], rhs_current_elems.shape[0])
+    for i in range(lhs_current_elems.shape[0]):
+        for j in range(rhs_current_elems.shape[0]):
+            weights_result[i,j] = weights_by_type[lhs_current_elems[i],rhs_current_elems[j]]
+    return weights_result
+
+def type_weight_matrix(lhs_current_elems, rhs_current_elems, weights_by_type):
+    # optimize later
+    weights_result = torch.zeros(lhs_current_elems.shape[0], rhs_current_elems.shape[0])
+    for i in range(lhs_current_elems.shape[0]):
+        for j in range(rhs_current_elems.shape[0]):
+            weights_result[i, j] = weights_by_type[lhs_current_elems[i]] + weights_by_type[rhs_current_elems[j]]
+    return weights_result
+
+def compute_matching(current_pool_list, curr_type_weights, e_weights_by_type, gamma=0.000001):
+    # current_pool_list should have lhs and rhs, get them both as tensors
+    lhs_current_elems = torch.tensor([x[0] for x in current_pool_list.lhs])
+    rhs_current_elems = torch.tensor([x[0] for x in current_pool_list.rhs])
+    l_n = lhs_current_elems.shape[0]
+    r_n = rhs_current_elems.shape[0]
+    A, b = make_matching_matrix(l_n, r_n)
+    A = torch.from_numpy(A).float()
+    b = torch.from_numpy(b).float()
+    # should take lhs and rhs
+    e_weights = weight_matrix(lhs_current_elems, rhs_current_elems, e_weights_by_type).view(l_n, r_n)
+    jitter_e_weights = e_weights + 1e-4 * torch.rand(l_n, r_n)
+    # e_weights = torch.rand(n,n)
+    model_params_quad = make_gurobi_model(A.detach().numpy(), b.detach().numpy(), None, None,
+                                          gamma * np.eye(A.shape[1]))
+    func = QPFunction(verbose=False, solver=QPSolvers.GUROBI, model_params=model_params_quad)
+
+    Q_mat = gamma * torch.eye(A.shape[1])
+
+    curr_elem_weights = type_weight_matrix(lhs_current_elems, rhs_current_elems, curr_type_weights).view(l_n, r_n)
+    modified_edge_weights = jitter_e_weights - 0.5 * (curr_elem_weights)
+    # may need some negative signs
+    resulting_match = func(Q_mat, -modified_edge_weights.view(-1), A, b, torch.Tensor(), torch.Tensor()).view(l_n, r_n)
+    return resulting_match, e_weights
+

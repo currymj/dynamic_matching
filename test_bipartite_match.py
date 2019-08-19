@@ -1,6 +1,6 @@
 import torch
 
-from bipartite_match import ind_counts_to_longs, get_matched_indices
+from bipartite_match import ind_counts_to_longs, get_matched_indices, compute_matching
 
 def test_ind_counts_to_longs():
     arrival_counts = torch.tensor([2,3,2])
@@ -21,6 +21,7 @@ def unambiguous_matching():
     return currpool, e_weights, correct_matching
 
 
+# testing index getting
 def test_get_matched_indices_1():
     currpool, e_weights, correct_matching = unambiguous_matching()
     lhs_inds, rhs_inds, _ = get_matched_indices(correct_matching, e_weights)
@@ -42,5 +43,8 @@ def test_screwy_match():
     assert set(rhs_inds) == set([0])
 
 
+def test_compute_matching_noweights():
+    currpool, e_weights_type, correct_matching = unambiguous_matching()
 
-
+    resulting_match, e_weights = compute_matching(currpool, torch.zeros(5), e_weights_type)
+    assert torch.allclose(resulting_match, correct_matching)
