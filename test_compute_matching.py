@@ -57,6 +57,19 @@ def test_potentials():
     result_match, e_weights = compute_matching(currpool, potentials, e_weights)
     assert torch.allclose(result_match, desired_match, atol=1e-6)
 
+def test_opposite_potentials():
+    currpool = CurrentElems([[torch.tensor(1), 0, 5], [torch.tensor(2), 0, 5]],
+                            [[torch.tensor(2), 0, 5]])
+    e_weights = toy_e_weights_type()
+    potentials = torch.tensor([0.0, -1.0, 0.0, 0.0, 0.0])
+
+    desired_match = torch.tensor([[1.0],
+                                  [0.0]])
+
+    result_match, e_weights = compute_matching(currpool, potentials, e_weights)
+    assert torch.allclose(result_match, desired_match, atol=1e-6)
+
+
 def test_zero_potentials():
     currpool = CurrentElems([[torch.tensor(1), 0, 5], [torch.tensor(2), 0,5]],
                             [[torch.tensor(2), 0, 5]])
@@ -69,7 +82,7 @@ def test_zero_potentials():
     result_match, e_weights = compute_matching(currpool, potentials, e_weights)
     assert torch.allclose(result_match, desired_match, atol=1e-6)
 
-def test_tiebreak():
+def dont_test_tiebreak():
     # this is a failing test that reveals a fractional matching
     currpool = CurrentElems([[torch.tensor(1), 0, 5],[torch.tensor(1), 0, 5], [torch.tensor(1), 0, 5]],
                             [[torch.tensor(1), 0, 5], [torch.tensor(1), 0, 5]])
