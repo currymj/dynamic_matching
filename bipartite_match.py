@@ -101,6 +101,37 @@ def get_matched_indices(match_edges, e_weights, match_thresh=0.8):
 def arrivals_only(current_elems, l_t_to_arrivals, r_t_to_arrivals, curr_t):
     return CurrentElems(current_elems.lhs + l_t_to_arrivals[curr_t], current_elems.rhs + r_t_to_arrivals[curr_t])
 
+def step_simulation_sampled(current_elems, sampled_edges, e_weights, l_t_to_arrivals, r_t_to_arrivals, curr_t, match_thresh=0.8):
+    # this function should take in actual edges and perhaps weights sampled elsewhere from a chosen fractional matching
+    # it should step the simulation and return a reward
+    raise NotImplementedError
+    
+    lhs_matched_inds, rhs_matched_inds, total_true_loss = get_matched_indices(match_edges, e_weights)
+    # get locations of maxima
+    # remove from current_elems if the maxima are <= match_threshold.
+
+    pool_after_match = CurrentElems([], [])
+
+    for i in range(len(current_elems.lhs)):
+        if i not in lhs_matched_inds:
+            pool_after_match.lhs.append(current_elems.lhs[i])
+
+    for j in range(len(current_elems.rhs)):
+        if j not in rhs_matched_inds:
+            pool_after_match.rhs.append(current_elems.rhs[j])
+
+    remaining_elements = CurrentElems([], [])
+    for v in pool_after_match.lhs:
+        if v[2] > curr_t:
+            remaining_elements.lhs.append(v)
+    for v in pool_after_match.rhs:
+        if v[2] > curr_t:
+            remaining_elements.rhs.append(v)
+
+    after_arrivals_lhs = remaining_elements.lhs + l_t_to_arrivals[curr_t]
+    after_arrivals_rhs = remaining_elements.rhs + r_t_to_arrivals[curr_t]
+
+    return CurrentElems(after_arrivals_lhs, after_arrivals_rhs), total_true_loss
 def step_simulation(current_elems, match_edges, e_weights, l_t_to_arrivals, r_t_to_arrivals, curr_t, match_thresh=0.8):
 
     lhs_matched_inds, rhs_matched_inds, total_true_loss = get_matched_indices(match_edges, e_weights)
