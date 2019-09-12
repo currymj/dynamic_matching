@@ -25,7 +25,24 @@ def compute_discounted_returns(losses, gamma=1.0):
 
 
 def sample_from_match(match_matrix):
-    raise NotImplementedError
+    row_len, col_len = match_matrix.shape
+    excluded_cols = set([])
+    sampled_edges = []
+    joint_log_prob = 0.0
+    for row in range(row_len):
+        for col in range(col_len):
+            if col in excluded_cols:
+                continue
+            this_edge_prob = match_matrix[row, col]
+            # flip coin here to include edge
+            edge_include = random.random() <= this_edge_prob
+            if edge_include:
+                joint_log_prob += torch.log(this_edge_prob)
+                excluded_cols.add(col)
+                sampled_edges.append((row, col))
+                break
+
+    return sampled_edges, joint_log_prob
 
 def train_func(list_of_histories, n_rounds=50, n_epochs=20):
     e_weights_type = toy_e_weights_type()
@@ -37,7 +54,8 @@ def train_func(list_of_histories, n_rounds=50, n_epochs=20):
         l_t_to_arrivals = history_to_arrival_dict(full_history.lhs)
         r_t_to_arrivals = history_to_arrival_dict(full_history.rhs)
         optimizer.zero_grad()
-        losses = []
+        rewards = []
+        logprobs = []
         curr_pool = CurrentElems([], [])
         for r in range(n_rounds):
             if len(curr_pool.lhs) <= 0 or len(curr_pool.rhs) <= 0:
@@ -45,11 +63,13 @@ def train_func(list_of_histories, n_rounds=50, n_epochs=20):
                 continue
             match_matrix, e_weights = compute_matching(curr_pool, type_weights, e_weights_type)
             resulting_match, match_logprob = sample_from_match(match_matrix)
+            # resulting_match here should be a list of tuples
             curr_pool, true_loss = step_simulation_sampled(curr_pool, resulting_match, e_weights, l_t_to_arrivals,
                                                    r_t_to_arrivals, r)
-            l = 1.0 * torch.sum(e_weights * resulting_match)
-            losses.append(l)
-        total_loss = torch.sum(torch.stack(compute_discounted_returns(losses)))
+            rewards.append(true_loss)
+            logprobs.append(match_logprob)
+        disc_returns = compute_discounted_returns(rewards)
+        total_loss = torch.sum(torch.stack(-disc_returns * logprobs))
         total_losses.append(total_loss.item())
         total_loss.backward()
         optimizer.step()

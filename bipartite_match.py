@@ -104,11 +104,11 @@ def arrivals_only(current_elems, l_t_to_arrivals, r_t_to_arrivals, curr_t):
 def step_simulation_sampled(current_elems, sampled_edges, e_weights, l_t_to_arrivals, r_t_to_arrivals, curr_t, match_thresh=0.8):
     # this function should take in actual edges and perhaps weights sampled elsewhere from a chosen fractional matching
     # it should step the simulation and return a reward
-    raise NotImplementedError
+
     
-    lhs_matched_inds, rhs_matched_inds, total_true_loss = get_matched_indices(match_edges, e_weights)
-    # get locations of maxima
-    # remove from current_elems if the maxima are <= match_threshold.
+    lhs_matched_inds = [e[0] for e in sampled_edges]
+    rhs_matched_inds = [e[1] for e in sampled_edges]
+    total_true_loss = np.sum([e_weights[i, j] for (i, j) in sampled_edges])
 
     pool_after_match = CurrentElems([], [])
 
@@ -132,6 +132,7 @@ def step_simulation_sampled(current_elems, sampled_edges, e_weights, l_t_to_arri
     after_arrivals_rhs = remaining_elements.rhs + r_t_to_arrivals[curr_t]
 
     return CurrentElems(after_arrivals_lhs, after_arrivals_rhs), total_true_loss
+
 def step_simulation(current_elems, match_edges, e_weights, l_t_to_arrivals, r_t_to_arrivals, curr_t, match_thresh=0.8):
 
     lhs_matched_inds, rhs_matched_inds, total_true_loss = get_matched_indices(match_edges, e_weights)
