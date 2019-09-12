@@ -28,7 +28,7 @@ def sample_from_match(match_matrix):
     row_len, col_len = match_matrix.shape
     excluded_cols = set([])
     sampled_edges = []
-    joint_log_prob = 0.0
+    joint_log_prob = torch.tensor(0.0, requires_grad=True)
     for row in range(row_len):
         for col in range(col_len):
             if col in excluded_cols:
@@ -37,7 +37,7 @@ def sample_from_match(match_matrix):
             # flip coin here to include edge
             edge_include = random.random() <= this_edge_prob
             if edge_include:
-                joint_log_prob += torch.log(this_edge_prob)
+                joint_log_prob = joint_log_prob + torch.log(this_edge_prob)
                 excluded_cols.add(col)
                 sampled_edges.append((row, col))
                 break
@@ -66,10 +66,11 @@ def train_func(list_of_histories, n_rounds=50, n_epochs=20):
             # resulting_match here should be a list of tuples
             curr_pool, true_loss = step_simulation_sampled(curr_pool, resulting_match, e_weights, l_t_to_arrivals,
                                                    r_t_to_arrivals, r)
-            rewards.append(true_loss)
+            rewards.append(torch.tensor(true_loss))
             logprobs.append(match_logprob)
         disc_returns = compute_discounted_returns(rewards)
-        total_loss = torch.sum(torch.stack(-disc_returns * logprobs))
+        all_losses = -torch.stack(disc_returns) * torch.stack(logprobs)
+        total_loss = torch.sum(all_losses)
         total_losses.append(total_loss.item())
         total_loss.backward()
         optimizer.step()
